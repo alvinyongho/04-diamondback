@@ -342,36 +342,24 @@ to contain the labels and code for handling the
 three different kinds of run-time errors, namely
 type-errors and arithmetic overflow.
 
+## Tests (5-for-5)
 
-### Testing
-
-TODO
-
-There is one new testing function provided, `tvg`.  
-This works just like `t`, except it runs `valgrind`
-on the executable it creates, and checks whether or
-not it reports errors.  If `valgrind` does report
-memory errors, the test fails and the errors are
-reported.  The test succeeds if there are no memory
-errors and the answer is correct.
-
-You can test the well-formedness errors using the
-error tester as usual.
-
-
-## Crafting Tests (5-for-5)
+* You can test the well-formedness errors using the
+  error tester as usual.
 
 * You **must** add 10 new tests in `yourTests` in order 
   to get **base credit**. Feel free to add more, we'll 
   just take the first 10.
 
-* The creators of the **5 hardest tests** get **5%** of total points as **extra credit**
+* The creators of the **5 hardest tests** get **5%** 
+  of total points as **extra credit**
 
 * A test's "score" is the total number of compilers
   submitted by the entire class on which the test
   produces the **wrong** output.
 
-* That is, the **harder** a test, the **higher** its score.
+* That is, the **harder** a test, the **higher** its 
+  score.
 
 ## Handing In
 
