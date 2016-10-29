@@ -342,14 +342,6 @@ to contain the labels and code for handling the
 three different kinds of run-time errors, namely
 type-errors and arithmetic overflow.
 
-## Valgrind 
-
-If you wish, use `valgrind` (installed in the lab) 
-to help debug your code, for example thus:
-
-```
-$ make tests/output/nyi.vresult 
-```
 
 ## Tests (5-for-5)
 
@@ -369,6 +361,58 @@ $ make tests/output/nyi.vresult
 
 * That is, the **harder** a test, the **higher** its 
   score.
+
+## Interactive REPL 
+
+```bash
+$ stack ghci
+```
+
+and then you are inside `ghci` where you can use the function `run` to 
+**rapidly** test your code.
+
+```
+λ> :t run
+run :: FilePath -> Program -> IO Result
+```
+
+For example to directly compile and run a string do:
+
+```
+λ> run "" (Code "1 + 2") 
+*** Exception: TBD:wellFormedE
+```
+
+To run a program whose code is in a file `tests/input/file.diamond` do:
+
+```
+λ> run "nyi" File
+*** Exception: TBD:wellFormedE
+```
+
+Of course, neither works now. When you edit your code, instead of having to
+rebuild, you can more rapidly type `:reload` in `ghci` and then re-run the 
+above commands.
+
+
+## Valgrind 
+
+If you wish, use `valgrind` (installed in the lab) 
+to help debug your code, for example thus:
+
+```
+$ make tests/output/nyi.vresult 
+```
+
+or in `ghci` as:
+
+```
+λ> vrun "" (Code "1 + 2") 
+λ> vrun "nyi" File
+```
+
+
+
 
 ## Handing In
 
@@ -412,37 +456,4 @@ and check whether the output contains the relevant files.
 
 If this is not the first time submitting this assigmment, make sure you remove
 old copies of `04-diamondback.tgz` left in this directory.
-
-## Interactive REPL 
-
-```bash
-$ stack ghci
-```
-
-and then you are inside `ghci` where you can use the function `run` to 
-**rapidly** test your code.
-
-```
-λ> :t run
-run :: FilePath -> Program -> IO Result
-```
-
-For example to directly compile and run a string do:
-
-```
-λ> run "" (Code "1 + 2") 
-*** Exception: TBD:wellFormedE
-```
-
-To run a program whose code is in a file `tests/input/file.diamond` do:
-
-```
-λ> run "nyi" File
-*** Exception: TBD:wellFormedE
-```
-
-Of course, neither works now. When you edit your code, instead of having to
-rebuild, you can more rapidly type `:reload` in `ghci` and then re-run the 
-above commands.
-
 
