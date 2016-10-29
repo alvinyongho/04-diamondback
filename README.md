@@ -342,6 +342,15 @@ to contain the labels and code for handling the
 three different kinds of run-time errors, namely
 type-errors and arithmetic overflow.
 
+## Valgrind 
+
+If you wish, use `valgrind` (installed in the lab) 
+to help debug your code, for example thus:
+
+```
+$ make tests/output/nyi.vresult 
+```
+
 ## Tests (5-for-5)
 
 * You can test the well-formedness errors using the

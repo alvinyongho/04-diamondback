@@ -28,6 +28,9 @@ build:
 tests/output/%.result: tests/output/%.run
 	$< > $@
 
+tests/output/%.vresult: tests/output/%.run
+	valgrind $< > $@
+
 tests/output/%.run: tests/output/%.o c-bits/main.c
 	clang -g -m32 -o $@ c-bits/main.c $<
 
@@ -38,7 +41,7 @@ tests/output/%.s: tests/input/%.$(EXT)
 	stack exec -- $(COMPILER) $< > $@
 
 clean:
-	rm -rf tests/output/*.o tests/output/*.s tests/output/*.dSYM tests/output/*.run tests/output/*.log tests/output/*.result $(ASGN)-$(COMPILER).tgz
+	rm -rf tests/output/*.o tests/output/*.s tests/output/*.dSYM tests/output/*.run tests/output/*.log tests/output/*.*result $(ASGN)-$(COMPILER).tgz
 
 distclean: clean
 	stack clean

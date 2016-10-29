@@ -394,14 +394,16 @@ data Ext = Src    -- ^ source
          | Asm    -- ^ ascii  assembly
          | Exe    -- ^ x86    binary
          | Res    -- ^ output of execution
+         | VRes   -- ^ output of valgrind execution
          | Log    -- ^ compile and execution log
 
 instance Show Ext where
-  show Src = "diamond"
-  show Asm = "s"
-  show Exe = "run"
-  show Res = "result"
-  show Log = "log"
+  show Src  = "diamond"
+  show Asm  = "s"
+  show Exe  = "run"
+  show Res  = "result"
+  show VRes = "vresult"
+  show Log  = "log"
 
 ext :: FilePath -> Ext -> FilePath
 ext f e = f <.> show e

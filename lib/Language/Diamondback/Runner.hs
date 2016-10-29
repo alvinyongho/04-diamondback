@@ -61,14 +61,24 @@ exec src = (putStrLn . either id id) =<< run "exec_tmp" (Code src)
 --------------------------------------------------------------------------------
 run :: FilePath -> Program -> IO Result
 --------------------------------------------------------------------------------
-run name pgm = do
+run = runExt Res 
+
+--------------------------------------------------------------------------------
+vrun :: FilePath -> Program -> IO Result
+--------------------------------------------------------------------------------
+vrun = runExt VRes
+
+--------------------------------------------------------------------------------
+runExt :: Ext -> FilePath -> Program -> IO Result
+--------------------------------------------------------------------------------
+runExt res name pgm = do
   _ <- generateSource name pgm                 -- generate source file
   _ <- generateAsm    name `catch` esHandle    -- generate asm
   r <- executeShellCommand logF cmd timeLimit  -- compile & run
   readResult resF logF r
   where
     cmd  = printf "make %s"     resF
-    resF = dirExt "output" name Res
+    resF = dirExt "output" name res 
     logF = dirExt "output" name Log
 
 -- | `timeLimit` for each test is 15 seconds
