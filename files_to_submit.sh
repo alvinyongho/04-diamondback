@@ -2,7 +2,7 @@
 
 ASGN=04
 COMPILER=diamondback
-EXT=diamondback
+EXT=diamond
 
 PREFIX=../$ASGN-$COMPILER
 
