@@ -1,8 +1,8 @@
 #!/bin/sh
 
-ASGN=03
-COMPILER=cobra
-EXT=cobra
+ASGN=04
+COMPILER=diamondback
+EXT=diamondback
 
 PREFIX=../$ASGN-$COMPILER
 
@@ -11,5 +11,5 @@ PREFIX=../$ASGN-$COMPILER
 find $PREFIX \
   -regextype posix-extended \
   -type f \
-  -a ! \( -regex "^${PREFIX}/\.git/.*" -o -regex "^${PREFIX}/\.stack-work/.*" \) \
+  -a ! \( -regex "^${PREFIX}/\.git/.*" -o -regex "^${PREFIX}/\.stack-work/.*"  -o -regex "^${PREFIX}/\.liquid/.*" \) \
   -a ! -regex '.*\.(o|s|dSYM|run|log|result)$'
