@@ -25,10 +25,10 @@ import Language.Diamondback.Compiler
 import Debug.Trace (trace)
 
 topMain:: IO ()
-topMain = runCompiler `catch` esHandle
+topMain = runCompiler `catch` (esHandle stderr exitFailure)
 
-esHandle :: [UserError] -> IO ()
-esHandle es = renderErrors es >>= hPutStrLn stderr >> exitFailure
+esHandle :: Handle -> IO a -> [UserError] -> IO a
+esHandle h exitF es = renderErrors es >>= hPutStrLn h >> exitF
 
 runCompiler :: IO ()
 runCompiler = do
@@ -45,41 +45,30 @@ getSrcFile = do
     [f] -> return f
     _   -> error "Please run with a single file as input"
 
-
 overflowError  = Left "Error: arithmetic overflow"
 rLines         = Right . unlines
 dynamicError t = Left ("Error: expected a " ++ pprint t)
 staticError    = Left
-
 
 -------------------------------------------------------------------------------
 exec :: Text -> IO ()
 --------------------------------------------------------------------------------
 exec src = (putStrLn . either id id) =<< run "exec_tmp" (Code src)
 
-
 --------------------------------------------------------------------------------
 run :: FilePath -> Program -> IO Result
 --------------------------------------------------------------------------------
-run = runExt Res 
-
---------------------------------------------------------------------------------
-vrun :: FilePath -> Program -> IO Result
---------------------------------------------------------------------------------
-vrun = runExt VRes
-
---------------------------------------------------------------------------------
-runExt :: Ext -> FilePath -> Program -> IO Result
---------------------------------------------------------------------------------
-runExt res name pgm = do
-  _ <- generateSource name pgm                 -- generate source file
-  _ <- generateAsm    name `catch` esHandle    -- generate asm
-  r <- executeShellCommand logF cmd timeLimit  -- compile & run
+run name pgm = do
+  _ <- generateSource name pgm                -- generate source file
+  _ <- generateAsm name `catch` esH           -- generate asm
+  r <- executeShellCommand logF cmd timeLimit -- compile & run
   readResult resF logF r
   where
-    cmd  = printf "make %s"     resF
-    resF = dirExt "output" name res 
-    logF = dirExt "output" name Log
+    cmd     = printf "make %s"     resF
+    resF    = dirExt "output" name Res
+    logF    = dirExt "output" name Log
+    esH es  = withFile logF AppendMode $ \h -> 
+                esHandle h (return ()) es 
 
 -- | `timeLimit` for each test is 15 seconds
 timeLimit :: Int
