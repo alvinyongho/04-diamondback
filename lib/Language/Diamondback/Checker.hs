@@ -44,13 +44,34 @@ wellFormed (Prog ds e) = duplicateFunErrors ds
 -- | `wellFormedD fEnv vEnv d` returns the list of errors for a func-decl `d`
 --------------------------------------------------------------------------------
 wellFormedD :: FunEnv -> BareDecl -> [UserError]
-wellFormedD fEnv (Decl _ xs e _) = error "TBD:wellFormedD"
+wellFormedD fEnv (Decl _ xs e _) = duplicateParamErrors xs
+                                ++ wellFormedE fEnv vEnv e
+  where
+    vEnv                         = addsEnv xs emptyEnv
 
 --------------------------------------------------------------------------------
 -- | `wellFormedE vEnv e` returns the list of errors for an expression `e`
 --------------------------------------------------------------------------------
 wellFormedE :: FunEnv -> Env -> Bare -> [UserError]
-wellFormedE fEnv env e = error "TBD:wellFormedE"
+wellFormedE fEnv env e = go env e
+  where
+    gos                       = concatMap . go
+    go _    (Boolean {})      = []
+    go _    (Number  n     l) = largeNumErrors n l
+                             ++ []
+    go vEnv (Id      x     l) = unboundVarErrors vEnv x l
+    go vEnv (Prim1 _ e     _) = go  vEnv e
+    go vEnv (Prim2 _ e1 e2 _) = gos vEnv [e1, e2]
+    go vEnv (If   e1 e2 e3 _) = gos vEnv [e1, e2, e3]
+    go vEnv (Let x e1 e2   l) = shadowVarErrors vEnv (bindId x) l
+                             ++ go vEnv e1
+                             ++ go (addEnv x vEnv) e2
+    go vEnv (App f es      l) = unboundFunErrors fEnv f l
+                             ++ gos vEnv es
+
+
+addsEnv :: [BareBind] -> Env -> Env
+addsEnv xs env = L.foldl' (\e x -> addEnv x e) env xs
 
 --------------------------------------------------------------------------------
 -- | Error Checkers: In each case, return an empty list if no errors.
@@ -61,11 +82,41 @@ duplicateFunErrors
   . concat
   . dupBy (bindId . fName)
 
+
+duplicateParamErrors :: [BareBind] -> [UserError]
+duplicateParamErrors xs
+  = fmap (errDupParam . head)
+  . dupBy bindId
+  $ xs
+
+
+
 -- | `maxInt` is the largest number you can represent with 31 bits (accounting for sign
 --    and the tag bit.
 
 maxInt :: Integer
 maxInt = 1073741824
+
+condError :: Bool -> UserError -> [UserError]
+condError True u = [u]
+condError False _ = []
+
+shadowVarErrors :: Env -> Id -> SourceSpan -> [UserError]
+shadowVarErrors vEnv x l =
+  condError ((memberEnv x vEnv)) (errShadowVar l x)
+
+unboundVarErrors :: Env -> Id -> SourceSpan -> [UserError]
+unboundVarErrors vEnv x l =
+  condError (not (memberEnv x vEnv)) (errUnboundVar l x)
+
+unboundFunErrors :: FunEnv -> Id -> SourceSpan -> [UserError]
+unboundFunErrors fEnv f l =
+  condError (not (memberEnv f fEnv)) (errUnboundFun l f)
+
+largeNumErrors :: Integer -> SourceSpan -> [UserError]
+largeNumErrors n l =
+  condError (abs(fromIntegral (n)) >  (maxInt))
+            (errLargeNum l n)
 
 --------------------------------------------------------------------------------
 -- | Error Constructors: Use these functions to construct `UserError` values
@@ -86,6 +137,9 @@ errLargeNum   l n = mkError (printf "Number '%d' is too large" n) l
 
 errUnboundVar :: SourceSpan -> Id -> UserError
 errUnboundVar l x = mkError (printf "Unbound variable '%s'" x) l
+
+errShadowVar :: SourceSpan -> Id -> UserError
+errShadowVar l x = mkError (printf "Shadow binding variable '%s'" x) l
 
 errUnboundFun :: SourceSpan -> Id -> UserError
 errUnboundFun l f = mkError (printf "Function '%s' is not defined" f) l
