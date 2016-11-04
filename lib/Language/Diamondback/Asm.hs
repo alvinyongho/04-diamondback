@@ -33,8 +33,39 @@ postlude = concat
   , dynError ArithOverflow
   ]
 
+
+ecode :: DynError -> Arg
+ecode (TypeError TNumber)  = Const 0
+ecode (TypeError TBoolean) = Const 1
+ecode (ArithOverflow)      = Const 2
+
 dynError   :: DynError -> [Instruction]
-dynError e = error "TBD:dynError"
+dynError e = errDynTemplate e
+
+errDynTemplate:: DynError -> [Instruction]
+errDynTemplate d =
+  [ ILabel (DynamicErr d)
+  , IPush (Reg EAX)
+  , IPush (ecode d)
+  , ICall (Builtin "error")
+  ]
+--
+--
+-- errTemplate :: Ty -> [Instruction]
+-- errTemplate t =
+--   [ ILabel (DynamicErr (TypeError t))
+--   , IPush (Reg EAX)
+--   , IPush (ecode t)
+--   , ICall (Builtin "error")
+--   ]
+--
+-- overflowErr =
+--   [ ILabel (DynamicErr ArithOverflow)
+--   , IPush (Reg EAX)
+--   , IPush (Const 2)
+--   , ICall (Builtin "error")
+--   ]
+
 
 --------------------------------------------------------------------------------
 instrAsm :: Instruction -> Text

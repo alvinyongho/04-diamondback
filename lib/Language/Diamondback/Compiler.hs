@@ -56,10 +56,14 @@ annTail = snd
 --------------------------------------------------------------------------------
 compile :: APgm -> [Instruction]
 --------------------------------------------------------------------------------
-compile (Prog ds e) = error "TBD:compile"
+compile (Prog ds e) = compileBody emptyEnv e
+                   <> concatMap compileDecl ds
 
 compileDecl :: ADcl -> [Instruction]
-compileDecl (Decl f xs e l) = error "TBD:compileDecl"
+compileDecl (Decl f xs e l) = ILabel (DefFun (bindId f))
+                            : compileBody env e
+                            where
+                              env = fromListEnv (zip (bindId <$> xs) [-2,-3..])
 
 compileBody :: Env -> AExp -> [Instruction]
 compileBody env e = funInstrs (countVars e) (compileEnv env e)
@@ -102,6 +106,23 @@ compileEnv :: Env -> AExp -> [Instruction]
 --------------------------------------------------------------------------------
 -- compileEnv env e = error "TBD:compileEnv"
 
+tailcall :: Label -> [Arg] -> [Instruction]
+tailcall f args
+  = copyArgs args
+  ++ funExit
+
+
+copyArgs :: [Arg] -> [Instruction]
+copyArgs = concat . zipWith copyArg [-2, -3..]
+  where
+    copyArg i a = [ IMov (Reg EAX) a
+                  , IMov (stackVar i) (Reg EAX)
+                  ]
+
+compileEnv env (App f vs l)
+  | annTail l = tailcall (DefFun f) (param env <$> vs)
+  | otherwise = call (DefFun f) [param env v | v <- vs]
+
 compileEnv env v@Number {}       = [ IMov (Reg EAX) (immArg env v) ]
 
 compileEnv env v@Boolean {}      = [ IMov (Reg EAX) (immArg env v)  ]
@@ -137,16 +158,12 @@ compileBind env (x, e) = (env', is)
     (i, env')          = pushEnv x env
 
 
-compilePrim1 :: Tag -> Env -> Prim1 -> IExp -> [Instruction]
+compilePrim1 :: Ann -> Env -> Prim1 -> IExp -> [Instruction]
 compilePrim1 l env Add1 v = compilePrim2 l env Plus v (Number 1 l)
 compilePrim1 l env Sub1 v = compilePrim2 l env Minus v (Number 1 l)
 
-compilePrim1 l env Print v = [ --IPush (Const 0)   --- Account for MACOSX extra 8 bits push
-                               IMov (Sized BytePtr (Reg EAX)) (immArg env v)
-                             , IPush (Reg EAX)
-                             , ICall (Builtin "print")
-                             , IAdd  (Reg ESP) (Const (4))
-                             ] -- clear the arguments by adding 4 * numArgs which is 2
+compilePrim1 l env Print v = call (Builtin "print") [param env v]
+                              -- clear the arguments by adding 4 * numArgs which is 2
 
 
 compilePrim1 l env IsNum v = isType l TNumber env v
@@ -155,7 +172,7 @@ compilePrim1 l env IsBool v = isType l TBoolean env v
 
 
 -- | TBD: Implement code for `Prim2` with appropriate type checking
-compilePrim2 :: Tag -> Env -> Prim2 -> IExp -> IExp -> [Instruction]
+compilePrim2 :: Ann -> Env -> Prim2 -> IExp -> IExp -> [Instruction]
 -- compilePrim2 l env op = error "TBD:compilePrim2"
 compilePrim2 l env Plus v1 v2 =
                                 assertType TNumber env v1
@@ -189,13 +206,13 @@ compilePrim2 l env Times v1 v2 =
 
 
 compilePrim2 l env Equal v1 v2
-  = compileCmp l env IJe v1 v2
+  = compileCmp (annTag l) env IJe v1 v2
 
 compilePrim2 l env Greater v1 v2
-  = compileCmp l env IJg v1 v2
+  = compileCmp (annTag l) env IJg v1 v2
 
 compilePrim2 l env Less v1 v2
-  = compileCmp l env IJl v1 v2
+  = compileCmp (annTag l) env IJl v1 v2
 
 compileCmp l env jop v1 v2 =
    assertType TNumber env v1
@@ -211,27 +228,27 @@ compileCmp l env jop v1 v2 =
   , ILabel lExit
   ]
   where
-    lTrue = BranchTrue (snd l)
-    lExit = BranchDone (snd l)
+    lTrue = BranchTrue l
+    lExit = BranchDone l
 
 
 
 -- | TBD: Implement code for `If` with appropriate type checking
-compileIf :: Tag -> Env -> IExp -> AExp -> AExp -> [Instruction]
+compileIf :: Ann -> Env -> IExp -> AExp -> AExp -> [Instruction]
 compileIf l env v e1 e2 =
     -- compilePrim1 l env IsBool v++
 
     assertType TBoolean env v ++
     compileEnv env v ++         -- compile the condition
     [ ICmp (Reg EAX) (HexConst 0x7fffffff)      -- check the condition is false
-    , IJne (BranchTrue  (snd l))    -- if the condition is not false then it must be true so jump to BranchTrue
+    , IJne (BranchTrue  (annTag l))    -- if the condition is not false then it must be true so jump to BranchTrue
     ]
     ++ compileEnv env e2 ++     -- since the condition is false (not skipped) then compute the False expression
-    [ IJmp (BranchDone (snd l))     -- computation is done so skip to BranchDone label
-    , ILabel (BranchTrue (snd l))   -- Branch True label
+    [ IJmp (BranchDone (annTag l))     -- computation is done so skip to BranchDone label
+    , ILabel (BranchTrue (annTag l))   -- Branch True label
     ]
     ++ compileEnv env e1 ++      -- Computations for the true expression
-    [ ILabel (BranchDone (snd l)) ] -- BranchDone label (where False expression can skip to when done, and following true)
+    [ ILabel (BranchDone (annTag l)) ] -- BranchDone label (where False expression can skip to when done, and following true)
 
 
 assertType :: Ty -> Env -> IExp -> [Instruction]
@@ -244,7 +261,7 @@ assertType ty env v =
   ]
 
 
-isType :: Tag -> Ty -> Env -> IExp -> [Instruction]
+isType :: Ann -> Ty -> Env -> IExp -> [Instruction]
 isType l ty env v =
   [ IMov (Reg EAX) (immArg env v)
   , IMov (Reg EBX) (Reg EAX)
@@ -258,8 +275,8 @@ isType l ty env v =
   , ILabel lExit
   ]
   where
-    lTrue = BranchTrue (snd l)
-    lExit = BranchDone (snd l)
+    lTrue = BranchTrue (annTag l)
+    lExit = BranchDone (annTag l)
 
 
 
@@ -286,9 +303,9 @@ stackVar i = RegOffset (-4 * i) EBP
 
 call :: Label -> [Arg] -> [Instruction]
 call f args =
-  pushArgs args
+  pushArgs args            -- Push in the args in reverse order
   ++ [ICall f]
-  ++ popArgs (length args)
+  ++ popArgs (length args) -- Reset the ESP
 
 
 pushArgs :: [Arg] -> [Instruction]
@@ -299,6 +316,21 @@ popArgs n = [ IAdd (Reg ESP) (Const (4*n)) ]
 
 param :: Env -> IExp -> Arg
 param env v = Sized DWordPtr (immArg env v)
+
+compareCheck env (Just t) v1 v2
+ = assertType env v1 t
+ <> assertType env v2 t
+
+-- compareVal :: Ann -> Env -> COp -> IExp -> IExp -> [Instruction]
+-- compareVal l env j v1 v2
+--   = IMov (Reg EAX) (immArg env v1)
+--   : IMov (Reg EBX) (immArg env v2)
+--   : ICmp (Reg EAX) (Reg EBX)
+--   : boolBranch l j
+
+assign :: (Repr a) => Reg -> a -> Instruction
+assign r v = IMov (Reg r) (repr v)
+
 
 
 --------------------------------------------------------------------------------
