@@ -44,11 +44,14 @@ wellFormed (Prog ds e) = duplicateFunErrors ds
 -- | `wellFormedD fEnv vEnv d` returns the list of errors for a func-decl `d`
 --------------------------------------------------------------------------------
 wellFormedD :: FunEnv -> BareDecl -> [UserError]
-wellFormedD fEnv (Decl _ xs e _) = duplicateParamErrors xs
+wellFormedD fEnv (Decl _ xs e l) = duplicateParamErrors xs
                                 ++ wellFormedE fEnv vEnv e
   where
     vEnv                         = addsEnv xs emptyEnv
 
+
+
+-- arityErrors fEnv f l = condError (not (memberEnv f fEnv)) (errUnboundFun l f)
 --------------------------------------------------------------------------------
 -- | `wellFormedE vEnv e` returns the list of errors for an expression `e`
 --------------------------------------------------------------------------------
@@ -67,6 +70,7 @@ wellFormedE fEnv env e = go env e
                              ++ go vEnv e1
                              ++ go (addEnv x vEnv) e2
     go vEnv (App f es      l) = unboundFunErrors fEnv f l
+                            --  ++ arityErrors fEnv f es l
                              ++ gos vEnv es
 
 
@@ -91,6 +95,10 @@ duplicateParamErrors xs
 
 
 
+-- arityErrors fEnv xs l = condError((True)(errCallArity l))
+
+
+
 -- | `maxInt` is the largest number you can represent with 31 bits (accounting for sign
 --    and the tag bit.
 
@@ -112,6 +120,11 @@ unboundVarErrors vEnv x l =
 unboundFunErrors :: FunEnv -> Id -> SourceSpan -> [UserError]
 unboundFunErrors fEnv f l =
   condError (not (memberEnv f fEnv)) (errUnboundFun l f)
+
+
+-- arityErrors :: FunEnv -> Id -> SourceSpan -> [UserError]
+-- arityErrors fEnv f es l =
+--   condError (not ((getLength fEnv) == length es)) (errCallArity l f)
 
 largeNumErrors :: Integer -> SourceSpan -> [UserError]
 largeNumErrors n l =
