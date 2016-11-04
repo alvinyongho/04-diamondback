@@ -88,8 +88,8 @@ funEntry n = [ IPush (Reg EBP)
 -- FILL: clean up stack & labels for jumping to error
 funExit :: [Instruction]
 funExit = [ IMov (Reg ESP) (Reg EBP)
-          , IPop (Reg EBP)
-          , IRet ]
+          , IPop (Reg EBP) ]
+          -- , IRet ]
 
 --------------------------------------------------------------------------------
 -- | @countVars e@ returns the maximum stack-size needed to evaluate e,
