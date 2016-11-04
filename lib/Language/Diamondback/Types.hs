@@ -40,6 +40,7 @@ module Language.Diamondback.Types
   , pushEnv
   , lookupEnv
   , getLength
+  , extractEnv
   -- , lookupArity
   , memberEnv
   , addEnv
@@ -368,12 +369,18 @@ emptyEnv :: Env
 emptyEnv = Env [] 0 0
 
 
+extractEnv :: Id -> Env -> Int
+extractEnv k env = case (lookupEnv k env) of
+  Nothing -> 0
+  Just v  -> v
+
 -- lookupEnv takes the ID and Environment and cakks lookup in the list of envBinds
 lookupEnv :: Id -> Env -> Maybe Int
 lookupEnv k env = lookup k (envBinds env)
 
 getLength :: Env -> Int
 getLength env =  envArity env
+
 -- lookupArity :: Id ->
 -- lookupArity :: Id -> Env -> Maybe Int
 -- lookupArity k env  = lookup k (envArity env)

@@ -70,7 +70,7 @@ wellFormedE fEnv env e = go env e
                              ++ go vEnv e1
                              ++ go (addEnv x vEnv) e2
     go vEnv (App f es      l) = unboundFunErrors fEnv f l
-                            --  ++ arityErrors fEnv f es l
+                             ++ arityErrors fEnv f es l
                              ++ gos vEnv es
 
 
@@ -121,10 +121,9 @@ unboundFunErrors :: FunEnv -> Id -> SourceSpan -> [UserError]
 unboundFunErrors fEnv f l =
   condError (not (memberEnv f fEnv)) (errUnboundFun l f)
 
-
--- arityErrors :: FunEnv -> Id -> SourceSpan -> [UserError]
--- arityErrors fEnv f es l =
---   condError (not ((getLength fEnv) == length es)) (errCallArity l f)
+arityErrors :: Foldable t => Env -> Id -> t a -> SourceSpan -> [UserError]
+arityErrors fEnv f es l =
+  condError (not(extractEnv f fEnv == length es)) (errCallArity l f)
 
 largeNumErrors :: Integer -> SourceSpan -> [UserError]
 largeNumErrors n l =
