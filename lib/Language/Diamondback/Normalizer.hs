@@ -53,9 +53,9 @@ anf i (If c e1 e2 l)    = (i''', stitch bs  (If c' e1' e2' l))
     (i'' ,     e1')     = anf i'  e1
     (i''',     e2')     = anf i'' e2
 
-anf i (App f es l)      = (i', stitch bs  (App i' es' l))
+anf i (App f es l)      = (i', stitch bs  (App f es' l))
   where
-    (i', bs, es')      = imm i es
+    (i', bs, es')       = imms i es
 
 --------------------------------------------------------------------------------
 -- | `stitch bs e` takes a "context" `bs` which is a list of temp-vars and their
@@ -111,9 +111,9 @@ imm i (Prim2 o e1 e2 l) = (i'', bs', mkId x l)
 
 imm i (App f es l)      = (i', bs, mkId v l)
   where
-    (i' , b1s, es')      = imms i (e:es)
+    (i' , b1s, es')      = imms i es
     (i'', v)            = fresh l i'
-    bs                  = (v, (App f es' l, l)) : bs
+    bs                  = (v, (App f es' l, l)) : b1s
 
 
 
