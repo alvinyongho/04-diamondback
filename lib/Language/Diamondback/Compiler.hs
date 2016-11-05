@@ -61,11 +61,14 @@ compile (Prog ds e) = compileBody emptyEnv e
 
 compileDecl :: ADcl -> [Instruction]
 compileDecl (Decl f xs e l) = ILabel (DefFun (bindId f))
-                            : compileBody env e
-                            where
-                              env = fromListEnv (zip (bindId <$> xs) [-2,-3..])
+                            : compileBody (paramsEnv xs) e
+                            -- where
+                              -- env = fromListEnv (zip (bindId <$> xs) [-2,-3..])
 
-compileBody :: Env -> AExp -> [Instruction]
+paramsEnv :: [Bind a] -> Env
+paramsEnv xs = fromListEnv (zip (bindId <$> xs) [-2, -3..])
+
+-- compileBody :: Env -> AExp -> [Instruction]
 compileBody env e = funInstrs (countVars e) (compileEnv env e)
 
 -- | @funInstrs n body@ returns the instructions of `body` wrapped
