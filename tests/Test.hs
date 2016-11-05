@@ -128,7 +128,7 @@ yourTests sc =
   [ mkTest sc "dumbTailCall"  File      (rLines ["1"])
   , mkTest sc "goodTailCall"  File      (rLines ["55"])
   , mkTest sc "manyTails"     File      (rLines ["5000001"])
-  , mkTest sc "fibMadness"    File (rLines ["1","1","2","3","5","8","13","21","34","55","89","144","233","377","610","9999"])
+  , mkTest sc "fibmadness"    File (rLines ["1","1","2","3","5","8","13","21","34","55","89","144","233","377","610","9999"])
   , mkTest sc "err-large-02"       File  (staticError "too large")
   , mkTest sc "err-too-small"      File  (staticError "too large") -- Is a negative large number "too large" or "too small"? ??
   , mkTest sc "err-dup-fun-02"      File  (staticError "duplicate function")
