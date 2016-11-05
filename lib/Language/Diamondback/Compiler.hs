@@ -57,7 +57,7 @@ annTail = snd
 compile :: APgm -> [Instruction]
 --------------------------------------------------------------------------------
 compile (Prog ds e) = compileBody emptyEnv e
-                   <> concatMap compileDecl ds
+                   ++ concatMap compileDecl ds
 
 compileDecl :: ADcl -> [Instruction]
 compileDecl (Decl f xs e l) = ILabel (DefFun (bindId f))
