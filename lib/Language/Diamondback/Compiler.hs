@@ -224,7 +224,8 @@ compileCmp l env jop v1 v2 =
      ++ assertType TNumber env v2
      ++
   [ IMov (Reg EAX) (immArg env v1)
-  , ICmp (Reg EAX) (immArg env v2)
+  , IMov (Reg EBX) (immArg env v2)
+  , ICmp (Reg EAX) (Reg EBX)
   , jop  lTrue
   , IMov (Reg EAX) (repr False)
   , IJmp lExit
