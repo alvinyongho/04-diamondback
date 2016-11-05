@@ -66,14 +66,7 @@ compileDecl (Decl f xs e l) = ILabel (DefFun (bindId f))
                               env = fromListEnv (zip (bindId <$> xs) [-2,-3..])
 
 compileBody :: Env -> AExp -> [Instruction]
-compileBody env e =
-  funEntry e
-  ++ compileEnv env e
-  ++ funExit e
-  ++ [IRet]
-
-
-  -- funInstrs (countVars e) (compileEnv env e)
+compileBody env e = funInstrs (countVars e) (compileEnv env e)
 
 -- | @funInstrs n body@ returns the instructions of `body` wrapped
 --   with code that sets up the stack (by allocating space for n local vars)
