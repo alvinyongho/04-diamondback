@@ -1,0 +1,7 @@
+def manyTails(x, acc):
+  if (x < 1):
+    acc
+  else:
+    manyTails(x-1, acc+1)
+
+manyTails(5000000,1)

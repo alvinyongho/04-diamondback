@@ -1,0 +1,27 @@
+def dupFun(n):
+  1
+
+def dupFun(n):
+  2
+
+def dupFun(n):
+  3
+
+def dupFun(n):
+  3
+
+def dupFun(n):
+  1
+
+def dupFun(n):
+  2
+
+def dupFun(n):
+  3
+
+def dupFun(n):
+  3
+
+
+
+dupFun(4)

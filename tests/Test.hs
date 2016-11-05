@@ -1,11 +1,11 @@
 {-# LANGUAGE ScopedTypeVariables #-}
--- module Test where 
+-- module Test where
 
 import Test.Tasty
 import Text.Printf
 import Control.Exception
 import System.Exit
-import Language.Diamondback.Runner 
+import Language.Diamondback.Runner
 import Language.Diamondback.Types      hiding (Result)
 
 main :: IO ()
@@ -124,6 +124,16 @@ diamondTests sc =
   , mkTest sc "even"      File      (rLines ["true", "false", "true", "false", "0"])
   ]
 
-yourTests sc = 
-  [ -- Your tests go here 
+yourTests sc =
+  [ mkTest sc "dumbTailCall"  File      (rLines ["1"])
+  , mkTest sc "goodTailCall"  File      (rLines ["55"])
+  , mkTest sc "manyTails"     File      (rLines ["5000001"])
+  , mkTest sc "fibMadness"    File (rLines ["1","1","2","3","5","8","13","21","34","55","89","144","233","377","610","9999"])
+  , mkTest sc "err-large-02"       File  (staticError "too large")
+  , mkTest sc "err-too-small"      File  (staticError "too large") -- Is a negative large number "too large" or "too small"? ??
+  , mkTest sc "err-dup-fun-02"      File  (staticError "duplicate function")
+  , mkTest sc "err-dup-fun-03"      File  (staticError "duplicate function")
+  , mkTest sc "err-dup-param-02"      File  (staticError "duplicate parameter")
+  , mkTest sc "err-arity-02"      File  (staticError "arity")
+  , mkTest sc "err-arity0"      File  (staticError "arity")
   ]

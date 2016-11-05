@@ -1,0 +1,7 @@
+def goodTailCall(x, acc):
+  if (x < 1):
+    acc
+  else:
+    goodTailCall(x-1, acc+x)
+
+goodTailCall(10,0)

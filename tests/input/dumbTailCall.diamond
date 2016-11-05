@@ -1,0 +1,7 @@
+def dumbTailCall(x, acc):
+  if (x < 1):
+    1
+  else:
+    dumbTailCall(x-1, acc+x)
+
+dumbTailCall(10, 0)

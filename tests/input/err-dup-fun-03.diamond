@@ -1,0 +1,7 @@
+def dupParam(x, x, y, y, z, z):
+  x + y + y + z
+
+def dupParam(x, x, y, y, z, z):
+  x + y + y + z
+
+dupParam(12)
