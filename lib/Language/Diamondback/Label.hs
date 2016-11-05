@@ -48,7 +48,7 @@ tailsE g = go True
         e2'                = go b     e2
         x'                 = tailsBind x
 
-    go b (App f es l)      = App f es' (l, b && g == Just f)
+    go b (App f es l)      = App f es' (l, b)
       where
         es'                = go False <$> es
 
