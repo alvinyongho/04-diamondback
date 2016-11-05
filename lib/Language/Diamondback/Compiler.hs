@@ -110,6 +110,7 @@ tailcall :: Label -> [Arg] -> [Instruction]
 tailcall f args
   = copyArgs args
   ++ funExit
+  ++ [IJmp f] -- jump to start
 
 
 copyArgs :: [Arg] -> [Instruction]
