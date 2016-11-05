@@ -20,6 +20,5 @@ let f0  = print(fib(0)),
     f13 = print(fib(13)),
     f14 = print(fib(14))
 
-
 in
     9999
