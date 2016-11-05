@@ -204,8 +204,8 @@ compilePrim2 l env Times v1 v2 =
                               ++ assertType TNumber env v2
                               ++ [ IMov (Reg EAX) (immArg env v1)
                                  , IMul (Reg EAX) (immArg env v2)
-                                 , ISar (Reg EAX) (Const 1)
                                  , IJo  (DynamicErr ArithOverflow)
+                                 , ISar (Reg EAX) (Const 1)
                                  ]
                                 --  ++ [ ICmp (Reg EAX) (Const 0)
 
@@ -315,9 +315,9 @@ call f args =
 
 pushArgs :: [Arg] -> [Instruction]
 pushArgs args =
-  ISub (Reg ESP) (Const (4*n))
+  ISub (Reg ESP) (Const (4*k))
   : [ IPush a | a <- reverse args ]
-  where n = length args
+  where k = length args
 
 popArgs :: Int -> [Instruction]
 popArgs n = [ IAdd (Reg ESP) (Const (4*n)) ]
