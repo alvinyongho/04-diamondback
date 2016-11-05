@@ -111,7 +111,7 @@ imm i (Prim2 o e1 e2 l) = (i'', bs', mkId x l)
 
 imm i (App f es l)      = (i'', bs, mkId v l)
   where
-    (i' , b1s, es')      = imms i es
+    (i' , b1s, es')     = imms i es
     (i'', v)            = fresh l i'
     bs                  = (v, (App f es' l, l)) : b1s
 
